@@ -142,7 +142,7 @@ public sealed class DanfeHtmlRenderer
         decimal vTotalRetFed = (vIRRF ?? 0M) + (vCP ?? 0M) + (vCSLL ?? 0M);
         decimal vDebPisCofins = (vPIS ?? 0M) + (vCOFINS ?? 0M);
 
-        // Verifica ses a NFSe está cancelada
+        // Verifica se a NFSe está cancelada
         string canceladaDiv = isCancelled
             ? @"<div style=""
               position:absolute;
@@ -166,6 +166,31 @@ public sealed class DanfeHtmlRenderer
               </div>"
             : string.Empty;
 
+        // Verifica se a NFSe foi substituída e não cancelada
+        var isSubstituida = infDps.subst != null && !isCancelled;
+        string substituidaDiv = isSubstituida
+            ? @"<div style=""
+              position:absolute;
+              top:50%;
+              left:50%;
+              display:inline-block;                 /* importante */
+              -webkit-transform: translate(-50%, -50%) rotate(-30deg);
+              transform: translate(-50%, -50%) rotate(-30deg);
+              -webkit-transform-origin: 50% 50%;
+              transform-origin: 50% 50%;
+              font-size:96px;
+              font-weight:800;
+              color: rgba(200,0,0,0.18);
+              border: 8px solid rgba(200,0,0,0.18);
+              padding: 20px 40px;
+              text-transform:uppercase;
+              z-index:9999;
+              pointer-events:none;
+              white-space:nowrap;"">
+                          SUBSTITUÍDA
+              </div>"
+            : string.Empty;
+
         bool hasTomador = infDps.toma != null;
         bool hasIntermediario = infDps.interm != null;
 
@@ -174,6 +199,8 @@ public sealed class DanfeHtmlRenderer
         {
             // Cancelada
             ["{{NFSE_CANCELADA_DIV}}"] = canceladaDiv,
+            // Substituída
+            ["{{NFSE_SUBSTITUIDA_DIV}}"] = substituidaDiv,
             // Fonts
             ["{{FONT_FAMILY}}"] = _options.FontFamily ?? "Verdana, Helvetica, sans-serif;",
             ["{{FONT_SIZE}}"] = _options.FontSize ?? "12px;",
@@ -287,7 +314,8 @@ public sealed class DanfeHtmlRenderer
                 kv.Key == "{{SERV_DESC_HTML}}" ||
                 kv.Key == "{{INF_COMPLEMENTARES}}" ||
                 kv.Key == "{{LOGO_NAME}}" ||
-                kv.Key == "{{NFSE_CANCELADA_DIV}}";
+                kv.Key == "{{NFSE_CANCELADA_DIV}}" ||
+                kv.Key == "{{NFSE_SUBSTITUIDA_DIV}}";
 
             string value = isRawHtml ? kv.Value : Helper.HtmlEncode(kv.Value);
             template = template.Replace(kv.Key, value ?? string.Empty);
