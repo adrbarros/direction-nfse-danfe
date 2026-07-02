@@ -23,6 +23,10 @@ public sealed class DanfeHtmlRenderer
         _templatePath = _options.TemplatePath ?? Path.Combine(basePath, "Assets", "Templates", "Danfe.html");
     }
 
+    public (string Html, IReadOnlyList<DanfeWarning> Warnings) RenderInternal(NFSeSchema nfse, DanfeEnvironment environment, DanfeStatus status)
+    {
+        return Render(nfse, environment, status);
+    }
     public (string Html, IReadOnlyList<DanfeWarning> Warnings) Render(NFSeSchema nfse, DanfeEnvironment environment, DanfeStatus status)
     {
         if (nfse == null) throw new ArgumentNullException(nameof(nfse));

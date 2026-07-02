@@ -16,8 +16,24 @@ public sealed class DanfeService
         _pdf = new DanfePdfGenerator(converter);
     }
 
-    public DanfeResult Generate(NFSeSchema nfse, DanfeEnvironment environment, DanfeStatus status  = DanfeStatus.Autorizada)
+    public DanfeResult Generate(NFSeSchema nfse, DanfeEnvironment environment, DanfeStatus status = DanfeStatus.Autorizada)
     {
+        var (html, warnings) = _renderer.RenderInternal(nfse, environment, status);
+        var pdfBytes = _pdf.Generate(html);
+
+        return new DanfeResult
+        {
+            Environment = environment,
+            Html = html,
+            PdfBytes = pdfBytes,
+            Warnings = warnings
+        };
+    }
+    [Obsolete("Use Generate(NFSeSchema, DanfeEnvironment, DanfeStatus)")]
+    public DanfeResult Generate(NFSeSchema nfse, DanfeEnvironment environment, bool isCancelled)
+    {
+        var status = isCancelled ? DanfeStatus.Cancelada : DanfeStatus.Autorizada;
+
         var (html, warnings) = _renderer.Render(nfse, environment, status);
         var pdfBytes = _pdf.Generate(html);
 
@@ -30,18 +46,32 @@ public sealed class DanfeService
         };
     }
 
-    public DanfeResult Generate(string xml, DanfeEnvironment environment, DanfeStatus status  = DanfeStatus.Autorizada)
+    public DanfeResult Generate(string xml, DanfeEnvironment environment, DanfeStatus status = DanfeStatus.Autorizada)
     {
         using var sr = new StringReader(xml);
         var nfse = Deserialize(sr);
         return Generate(nfse, environment, status);
     }
+    [Obsolete("Use Generate(string, DanfeEnvironment, DanfeStatus).")]
+    public DanfeResult Generate(string xml, DanfeEnvironment environment, bool isCancelled = false)
+    {
+        using var sr = new StringReader(xml);
+        var nfse = Deserialize(sr);
+        return Generate(nfse, environment, isCancelled);
+    }
 
-    public DanfeResult Generate(Stream xmlStream, DanfeEnvironment environment, DanfeStatus status  = DanfeStatus.Autorizada)
+    public DanfeResult Generate(Stream xmlStream, DanfeEnvironment environment, DanfeStatus status = DanfeStatus.Autorizada)
     {
         using var sr = new StreamReader(xmlStream);
         var nfse = Deserialize(sr);
         return Generate(nfse, environment, status);
+    }
+    [Obsolete("Use Generate(Stream, DanfeEnvironment, DanfeStatus).")]
+    public DanfeResult Generate(Stream xmlStream, DanfeEnvironment environment, bool isCancelled = false)
+    {
+        using var sr = new StreamReader(xmlStream);
+        var nfse = Deserialize(sr);
+        return Generate(nfse, environment, isCancelled);
     }
 
     private static NFSeSchema Deserialize(TextReader reader)
