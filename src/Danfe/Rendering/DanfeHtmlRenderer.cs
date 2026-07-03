@@ -23,7 +23,11 @@ public sealed class DanfeHtmlRenderer
         _templatePath = _options.TemplatePath ?? Path.Combine(basePath, "Assets", "Templates", "Danfe.html");
     }
 
-    public (string Html, IReadOnlyList<DanfeWarning> Warnings) Render(NFSeSchema nfse, DanfeEnvironment environment, bool isCancelled = false)
+    public (string Html, IReadOnlyList<DanfeWarning> Warnings) RenderInternal(NFSeSchema nfse, DanfeEnvironment environment, DanfeStatus status)
+    {
+        return Render(nfse, environment, status);
+    }
+    public (string Html, IReadOnlyList<DanfeWarning> Warnings) Render(NFSeSchema nfse, DanfeEnvironment environment, DanfeStatus status)
     {
         if (nfse == null) throw new ArgumentNullException(nameof(nfse));
         if (nfse.infNFSe == null) throw new ArgumentException("NFSe.infNFSe não pode ser nulo", nameof(nfse));
@@ -143,6 +147,7 @@ public sealed class DanfeHtmlRenderer
         decimal vDebPisCofins = (vPIS ?? 0M) + (vCOFINS ?? 0M);
 
         // Verifica se a NFSe está cancelada
+        var isCancelled = status == DanfeStatus.Cancelada;
         string canceladaDiv = isCancelled
             ? @"<div style=""
               position:absolute;
@@ -167,7 +172,7 @@ public sealed class DanfeHtmlRenderer
             : string.Empty;
 
         // Verifica se a NFSe foi substituída e não cancelada
-        var isSubstituida = infDps.subst != null && !isCancelled;
+        var isSubstituida = status == DanfeStatus.Substituida;
         string substituidaDiv = isSubstituida
             ? @"<div style=""
               position:absolute;
